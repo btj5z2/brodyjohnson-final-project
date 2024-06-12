@@ -1,7 +1,7 @@
 ---
-title: "Example Manuscript Template for a Data Analysis Project"
+title: "Parameters associated with Injuries in the NFL"
 subtitle: ""
-author: Andreas Handel
+author: Brody Johnson
 date: "`r Sys.Date()`"
 format:
   docx:
@@ -27,8 +27,8 @@ library(knitr)
 
 
 # Summary/Abstract
-_Write a summary of your project._
 
+The goal of this project will be to find variables related to injuries observed in the NFL. That is, find the common play types, game situation (time remaining, down, yards to go, etc.), and injured player metrics (position, height, body weight, etc.) that has a correlation to causing the resulting injury.
 
 {{< pagebreak >}}
 
@@ -36,13 +36,17 @@ _Write a summary of your project._
 # Introduction 
 
 ## General Background Information
-_Provide enough background on your topic that others can understand the why and how of your analysis_ 
+
+For years, the NFL has been making changes in the game in an attempt to prevent player injuries. These changes range from rule modifications to investment in advancements to the players pads and helmets. Hopefully, the findings from this project can help inform players, coaches, and who knows, the NFL about the metrics for a higher risk in injury.
 
 ## Description of data and data source
-_Describe what the data is, what it contains, where it is from, etc. Eventually this might be part of a methods section._
+
+Three data sets have been identified for this project. The primary data set ("Injury Player Data" obtained from a Github repository contain 1,586 obervations) consists of every play ran in the NFL containing an injury during the 2019-2020 season. Some of the things contained in this data include the teams playing, the week in the season, play description, injury area, and injured player metrics. Two other data sets were obtained from Kaggle. The first is a "cumulative play data" containing information about every play ran in the 2019-2020 NFL season (42,186 observations). Information such as the teams playing, play description, and time in the game when it was ran. The last data set is the "player demographic data" containing information about all NFL players in the 2015-2019 seasons (11,145 observations). This data set has player metrics such as height, weight, date of birth, etc.
+
 
 ## Questions/Hypotheses to be addressed
 _State the research questions you plan to answer with this analysis._
+My hope is to answer the following question: What metrics, if any, are available that can help predict whether an injury may occur? In turn, this has the potential to answer more questions. For example: 1. For coaches, are there specific play types that lead to more injuries? 2. For players, is there a goal weight for certain positions that can reduce the likelihood of injury?
 
 To cite other work (important everywhere, but likely happens first in introduction), make sure your references are in the bibtex file specified in the YAML header above and have the right bibtex key. Then you can include like this:
 
@@ -56,6 +60,8 @@ Examples of reproducible research projects can for instance be found in [@mckay2
 # Methods 
 
 _Describe your methods. That should describe the data, the cleaning processes, and the analysis approaches. You might want to provide a shorter description here and all the details in the supplement._
+
+In both the "Injury Player Data" set and "cumulative play data" set, the play descriptions will need to be boiled down to simplified play types (pass, run, fumble, etc.). Next, a lot of what looks like unnecessary plays are included in the "cumulative play data" set such as end of quarters and games so these observations can be filtered out. Lastly, empty columns were noticed in the "cumulative play data" that can be removed.
 
 
 ## Schematic of workflow
@@ -80,10 +86,29 @@ _As applicable, explain where and how you got the data. If you directly import t
 ## Data import and cleaning
 _Write code that reads in the file and cleans it so it's ready for analysis. Since this will be fairly long code for most datasets, it might be a good idea to have it in one or several R scripts. If that is the case, explain here briefly what kind of cleaning/processing you do, and provide more details and well documented code somewhere (e.g. as supplement in a paper). All materials, including files that contain code, should be commented well so everyone can follow along._
 
+```{r}
+#Loading the Data Sets
+#install.packages("RCurl")
+#library(RCurl)
+
+# Injury Player Data
+#injuries <- read.csv(text = getURL("https://raw.githubusercontent.com/btj5z2/BrodyJohnson-P2-portfolio/main/position_injury_player_2019_2020_update.csv")) #also works but not needed
+injuries=read.csv("../../data/raw-data/position_injury_player_2019_2020_update.csv")
+
+# Cumulative Play data
+#pbp <- read.csv(text = getURL("https://raw.githubusercontent.com/btj5z2/BrodyJohnson-P2-portfolio/main/pbp-2019.csv")) #short for play-by-play #also works but not needed
+pbp = read.csv("../../data/raw-data/pbp-2019.csv")
+
+#Player Demographic data
+#players <- read.csv(text = getURL("https://raw.githubusercontent.com/btj5z2/BrodyJohnson-P2-portfolio/main/player_position_Rmd1.csv"))
+players = read.csv("../../data/raw-data/players (1).csv")
+
+```
+
 
 ## Statistical analysis
 _Explain anything related to your statistical analyses._
-
+The big picture look at the analysis will be to compare the frequency of parameters in the injury data set to the same parameters in the two supporting data sets. For example, we may find in the injury data set that most injuries occur during "short pass" plays. However, if we were to find the "short pass" play is the most common play type ran in the NFL, this becomes less significant of a finding.
 
 {{< pagebreak >}}
 
@@ -93,6 +118,62 @@ _Explain anything related to your statistical analyses._
 ## Exploratory/Descriptive analysis
 
 _Use a combination of text/tables/figures to explore and describe your data. Show the most important descriptive results here. Additional ones should go in the supplement. Even more can be in the R and Quarto files that are part of your project._
+
+### Structures of each data set
+
+```{r}
+#Structure of Injury Data Set
+str(injuries)
+```
+
+```{r}
+#Structure of Play-by-Play Data
+str(pbp)
+```
+
+```{r}
+#Structure of All Players Data Set
+str(players)
+```
+
+
+### Exploratory Analysis of parameters only in the *Injury* Data Set
+
+```{r}
+hist(injuries$week.x, breaks=24,main="Injuries by Week in Regular Season", xlim=c(1,18),xlab="Week",labels =T)
+```
+
+### Exploratory Analysis of parameters in the *Injury* Data Set and *Play-by-play* Data Set
+
+```{r}
+par(mfrow=c(1,2))
+hist(injuries$qtr, breaks=6,main="Injuries by Quarter", xlim=c(0,5),xlab="Quarter",labels =T)
+hist(pbp$Quarter, breaks=6,main="Total Plays by Quarter", xlim=c(0,5), xlab="Quarter",labels =T)
+
+```
+
+```{r}
+par(mfrow=c(1,2))
+hist(injuries$down, breaks=6,main="Injuries by Down", xlim=c(0,5),xlab="Quarter",labels =T)
+hist(pbp$Down, breaks=6,main="Total Plays by Down", xlim=c(0,5), xlab="Quarter",labels =T)
+
+```
+
+### Exploratory Analysis of parameters in the *Injury* Data Set and *Cumulative Player* Data Set
+
+```{r}
+par(mfrow=c(1,2))
+hist(injuries$height, breaks=10,main="Injuries by Height", xlab="Heiht",labels =T)
+hist(as.numeric(players$height), breaks=10,main="Total Players Height", xlab="Height",labels =T) #Nedd to look into why not all numeric
+
+```
+
+```{r}
+par(mfrow=c(1,2))
+hist(injuries$weight, breaks=10,main="Injuries by Weight", xlab="Weight",labels =T)
+hist(players$weight, breaks=10,main="Total Players Weight", xlab="Weight",labels =T) 
+
+```
 
 
 @tbl-summarytable shows a summary of the data.
