@@ -22,100 +22,216 @@ library(here) #to set paths
 ## ---- loaddata --------
 #path to data
 #note the use of the here() package and not absolute paths
-data_location <- here::here("data","raw-data","exampledata.xlsx")
+#data_location <- here::here("data","raw-data","exampledata.xlsx")
 #load data. 
 #note that for functions that come from specific packages (instead of base R)
 # I often specify both package and function like so
 #package::function() that's not required one could just call the function
 #specifying the package makes it clearer where the function "lives",
 #but it adds typing. You can do it either way.
-rawdata <- readxl::read_excel(data_location)
+#rawdata <- readxl::read_excel(data_location)
 # We might also want to load the codebook to look at it
-codebook <- readxl::read_excel(data_location, sheet ="Codebook")
+#codebook <- readxl::read_excel(data_location, sheet ="Codebook")
+#Loading the Data Sets
+#install.packages("RCurl")
+#library(RCurl)
 
+# Injury Player Data
+#injuries <- read.csv(text = getURL("https://raw.githubusercontent.com/btj5z2/BrodyJohnson-P2-portfolio/main/position_injury_player_2019_2020_update.csv")) #also works but not needed
+injuries=read.csv("data/raw-data/position_injury_player_2019_2020_update.csv")
+
+# Cumulative Play data
+#pbp <- read.csv(text = getURL("https://raw.githubusercontent.com/btj5z2/BrodyJohnson-P2-portfolio/main/pbp-2019.csv")) #short for play-by-play #also works but not needed
+pbp = read.csv("data/raw-data/pbp-2019.csv")
+
+#Player Demographic data
+#players <- read.csv(text = getURL("https://raw.githubusercontent.com/btj5z2/BrodyJohnson-P2-portfolio/main/player_position_Rmd1.csv"))
+players = read.csv("data/raw-data/players (1).csv")
 
 ## ---- exploredata --------
 #take a look at the data
-dplyr::glimpse(rawdata)
+dplyr::glimpse(injuries)
+  #Summarize "description" into "play_type"
+  #Summarize "injury_area" as upper vs lower body into new parameter
+  #Create new field calculating age from birthdate (mm/dd/yyyy)
+dplyr::glimpse(pbp) 
+  #Convert "gamedate" to date (from char), 
+  #remove empty columns (X, X.1,X.2,X.3), 
+  #Remove observations in "Description" indicating end of qtr/game, 2-minute warnings, and timeouts 
+  #0 values for "Down" indicate kickoffs & PATs. Concert to NA
+dplyr::glimpse(players) 
+  #Convert height to inches and then numeric. 
+  #Character parameters may also need to be converted to factor. 
+  #Create new field calculating age from birthdate (yyyy-mm-dd)
+  #Combine player positions to compare to injuries data set 
+
 #another way to look at the data
-summary(rawdata)
+summary(injuries) #meh way of looking at data
 #yet another way to get an idea of the data
-head(rawdata)
+head(injuries) #meh way of looking at data
 #this is a nice way to look at data
-skimr::skim(rawdata)
-#look in the Codebook for a variable explanation
-print(codebook)
+skimr::skim(injuries) #Neat way looking at data
+skimr::skim(pbp)
+skimr::skim(players)
+#"Glimpse" into the data is favorite way of initially looking at data
+
+#Creating function to capitalize 'description' variable 
+capitalize_words = function(text) {
+  mylist = list()
+  words = strsplit(text, '\\s+')[[1]] #Split text into words 
+  capitalized_words = toupper(words) #Capitalize each word
+  for (i in capitalized_words) #Combine words back into list
+    mylist = append(mylist, i)
+  return(mylist)
+}
+
+## ---- cleaninjuriesdata1 --------
+#Summarize "description" into "play_type"
+d1 = injuries 
+d1$play_type=NA
+for (i in 1:nrow(d1)) {
+  if('EXTRA' %in% capitalize_words(d1$desc[i])) {d1$play_type[i] = 'FG/PAT Attempt or Kickoff'}
+  else if('KICK' %in% capitalize_words(d1$desc[i])) {d1$play_type[i] = 'FG/PAT Attempt or Kickoff'}
+  else if('FUMBLE' %in% capitalize_words(d1$desc[i])) {d1$play_type[i] = 'Fumble'}
+  else if('DEEP' %in% capitalize_words(d1$desc[i])) {d1$play_type[i] = 'Deep Pass'}
+  else if('SHORT' %in% capitalize_words(d1$desc[i])) {d1$play_type[i] = 'Short Pass'}
+  else if('PUNT' %in% capitalize_words(d1$desc[i])) {d1$play_type[i] = 'Punt'}
+  else if('SACK' %in% capitalize_words(d1$desc[i])) {d1$play_type[i] = 'Sack'}
+  else if('SCRAMBLES' %in% capitalize_words(d1$desc[i])) {d1$play_type[i] = 'Scramble'}
+  else if('TWO-POINT' %in% capitalize_words(d1$desc[i])) {d1$play_type[i] = '2-Point Conversion'}
+  else {d1$play_type[i] ='Run'}
+} 
 
 
-## ---- cleandata1 --------
-# Inspecting the data, we find some problems that need addressing:
-# First, there is an entry for height which says "sixty" instead of a number. 
-# Does that mean it should be a numeric 60? It somehow doesn't make
-# sense since the weight is 60kg, which can't happen for a 60cm person (a baby)
-# Since we don't know how to fix this, we might decide to remove the person.
-# This "sixty" entry also turned all Height entries into characters instead of numeric.
-# That conversion to character also means that our summary function isn't very meaningful.
-# So let's fix that first.
-d1 <- rawdata %>% dplyr::filter( Height != "sixty" ) %>% 
-                  dplyr::mutate(Height = as.numeric(Height))
-# look at partially fixed data again
-skimr::skim(d1)
-hist(d1$Height)
+## ---- cleaninjuriesdata2 --------
+#Summarize "injury_area" as upper vs lower body into new parameter
+
+#First, cleaning raw data for misspelled words, etc.
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'lower bodt', 'lower body')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'lower', 'lower body')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'upper bodt', 'upper body')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'upper bdoy', 'lower body')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'knee, ankle', 'knee/ankle')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'ankle/ achilles', 'ankle')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'lower body/ achilles', 'ankle')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'wrist/hand', 'hand')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'finger', 'hand')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'lower body/knee', 'knee')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'upper body/shoulder', 'shoulder')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'upper body/ elbow', 'elbow')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'upper body/ shoulder', 'shoulder')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'pass rusher', NA)
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'upper body/back', 'back')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'lower back', 'back')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'not shown', NA)
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'head/ neck', 'head/neck')
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'unknown', NA)
+d1$injury.area = replace(d1$injury.area, d1$injury.area == 'unkown', NA)
+
+#Next, create a new variable summarizing injury_area by only lower body, upper body, head, and NAs
+d1$injury.area.new=NA
+headwords = c('head', 'head/neck')
+upperbodywords = c('upper body', 'arm', 'hand', 'shoulder', 'back/neck', 'eye', 'back', 'elbow', 'face', 'neck', 'ribs')
+lowerbodywords = c('lower body', 'knee', 'ankle', 'calf', 'foot', 'thigh', 'groin', 'knee/ankle', 'hamstring', 'hip')
+upperlower = c('upper and lower body')
+for (i in 1:nrow(d1)) {
+  if(d1$injury.area[i] %in% headwords) {d1$injury.area.new[i] = 'Head'}
+  else if(d1$injury.area[i] %in% upperbodywords) {d1$injury.area.new[i] = 'Upper Body'}
+  else if(d1$injury.area[i] %in% lowerbodywords) {d1$injury.area.new[i] = 'Lower Body'}
+  else if(d1$injury.area[i] %in% upperlower) {d1$injury.area.new[i] = 'Upper and lower body'}
+  else {d1$injury.area.new[i] = NA}
+} 
+
+## ---- cleaninjuriesdata3 --------
+#Create new field calculating age from birthdate (mm/dd/yyyy).
+is.na(d1$birth_date) = NA #Some NA values were not recognized by R as NA or anything else 
+d1$birth_date <- as.Date(d1$birth_date, format = "%m/%d/%Y", tryFormats = c("%m/%d/%Y")) 
+d1$game_date <- d1$game_date+as.Date("1899-12-30", "%Y-%m-%d") #Convert game_date from integer of # days after 12/30/1899 to date
+d1$age = NA
+d1$age = round(as.numeric(difftime(d1$game_date, d1$birth_date, units = 'weeks'))/52, digits=1)
+
+## ---- cleaninjuriessdata4 --------
+#Character parameters may also need to be converted to factor. 
+d1$position <- as.factor(d1$position)
+
+## ---- cleanpbpdata1 --------
+#Convert "gamedate" to date (from char), 
+p1 = pbp 
+p1$GameDate = as.Date(p1$GameDate, "%Y-%m-%d")
+
+## ---- cleanpbpdata2 --------
+#remove empty columns (X, X.1,X.2,X.3), 
+p2 = select(p1, -c(X, X.1, X.2, X.3))
+
+## ---- cleanpbpdata3 --------
+#Remove observations in "Description" indicating end of qtr/game, 2-minute warnings, and timeouts 
+p3 = p2 
+p3 = p3[!grepl("TWO-MINUTE WARNING|END QUARTER|END OF QUARTER|TIMEOUT #|END GAME", p3$Description, ignore.case = T),] 
+
+## ---- cleanpbpdata4 --------
+#Summarize "description" into "play_type"
+p3$play_type=NA
+for (i in 1:nrow(p3)) {
+  if('EXTRA' %in% capitalize_words(p3$Description[i])) {p3$play_type[i] = 'FG/PAT Attempt or Kickoff'}
+  else if('KICK' %in% capitalize_words(p3$Description[i])) {p3$play_type[i] = 'FG/PAT Attempt or Kickoff'}
+  else if('FUMBLE' %in% capitalize_words(p3$Description[i])) {p3$play_type[i] = 'Fumble'}
+  else if('DEEP' %in% capitalize_words(p3$Description[i])) {p3$play_type[i] = 'Deep Pass'}
+  else if('SHORT' %in% capitalize_words(p3$Description[i])) {p3$play_type[i] = 'Short Pass'}
+  else if('PUNT' %in% capitalize_words(p3$Description[i])) {p3$play_type[i] = 'Punt'}
+  else if('SACK' %in% capitalize_words(p3$Description[i])) {p3$play_type[i] = 'Sack'}
+  else if('SCRAMBLES' %in% capitalize_words(p3$Description[i])) {p3$play_type[i] = 'Scramble'}
+  else if('TWO-POINT' %in% capitalize_words(p3$Description[i])) {p3$play_type[i] = '2-Point Conversion'}
+  else {p3$play_type[i] ='Run'}
+} 
+
+## ---- cleanpbpdata5 --------
+#0 values for "Down" indicate kickoffs & PATs. Convert to NA
+p3$Down[p3$Down == 0] = NA
+
+## ---- cleanplayersdata1 --------
+#Convert height to inches and then numeric. 
+pl1 = players
+
+hasdash = grepl("-", pl1$height) #Checks each element for a dash
+for (i in seq_along(pl1$height)) {
+  if (hasdash[i]) {
+    #If dash present, split at dash and convert to numeric
+    parts = as.numeric(unlist(strsplit(pl1$height[i], "-")))
+    #Convert two numbers (ft, in) into inches 
+    pl1$height[i] = parts[1]*12+parts[2]
+  }
+  else {
+    #If no dash, record height as inches 
+    pl1$height[i] = as.numeric(pl1$height[i])
+  }
+}
 
 
-## ---- cleandata2 --------
-# Now we see that there is one person with a height of 6. 
-# that could be a typo, or someone mistakenly entered their height in feet.
-# If we don't know, we might need to remove this person.
-# But let's assume that we somehow know that this is meant to be 6 feet, so we can convert to centimeters.
-d2 <- d1 %>% dplyr::mutate( Height = replace(Height, Height=="6",round(6*30.48,0)) )
-#height values seem ok now
-skimr::skim(d2)
+## ---- cleanplayersdata2 --------
+#Character parameters may also need to be converted to factor. 
+pl1$position <- as.factor(pl1$position)  
 
-
-## ---- cleandata3 --------
-# now let's look at weight
-# there is a person with weight of 7000, which is impossible,
-# and one person with missing weight.
-# Note that the original data had an empty cell. 
-# The codebook says that's not allowed, it should have been NA.
-# R automatically converts empty values to NA.
-# If you don't want that, you can adjust it when you load the data.
-# to be able to analyze the data, we'll remove those individuals as well.
-# Note: Some analysis methods can deal with missing values, so it's not always necessary to remove them. 
-# This should be adjusted based on your planned analysis approach. 
-d3 <- d2 %>%  dplyr::filter(Weight != 7000) %>% tidyr::drop_na()
-skimr::skim(d3)
-
-
-## ---- cleandata4 --------
-# We also want to have Gender coded as a categorical/factor variable
-# we can do that with simple base R code to mix things up
-d3$Gender <- as.factor(d3$Gender)  
-skimr::skim(d3)
-
-
-## ---- cleandata5 --------
-#now we see that there is another NA, but it's not "NA" from R 
-#instead it was loaded as character and is now considered as a category.
-#There is also an individual coded as "N" which is not allowed.
-#This could be mistyped M or a mistyped NA. If we have a good guess, we could adjust.
-#If we don't we might need to remove that individual.
-#well proceed here by removing both the NA and N individuals
-#since this keeps an empty category, I'm also using droplevels() to get rid of it
-d4 <- d3 %>% dplyr::filter( !(Gender %in% c("NA","N")) ) %>% droplevels()
-skimr::skim(d4)
+## ---- cleanplayersdata3 --------
+#Create new field calculating age from birthdate (yyyy-mm-dd)
+pl1$birthDate <- as.Date(pl1$birthDate, tryFormats = c("%m/%d/%Y", "%Y-%m-%d", "%d/%m/%Y")) #Not converting the observations with "%m/%d/%Y" format. Returning NA instead
+pl1$age = NA
+pl1$age = round(as.numeric(difftime(as.Date("2019-09-05"), pl1$birthDate, units = 'weeks'))/52, digits=1)
 
 
 ## ---- savedata --------
 # all done, data is clean now. 
 # Let's assign at the end to some final variable
 # makes it easier to add steps above
-processeddata <- d4
+injuriesprocesseddata = d1
+pbpprocesseddata = p3
+playersprocesseddata = pl1
 # location to save file
-save_data_location <- here::here("data","processed-data","processeddata.rds")
-saveRDS(processeddata, file = save_data_location)
-
+save_data_location <- here::here("data","processed-data","injuriesprocesseddata.rds")
+saveRDS(injuriesprocesseddata, file = save_data_location)
+save_data_location <- here::here("data","processed-data","pbpprocesseddata.rds")
+saveRDS(pbpprocesseddata, file = save_data_location)
+save_data_location <- here::here("data","processed-data","playersprocesseddata.rds")
+saveRDS(playersprocesseddata, file = save_data_location)
 
 
 ## ---- notes --------

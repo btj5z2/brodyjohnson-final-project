@@ -41,11 +41,11 @@ For years, the NFL has been making changes in the game in an attempt to prevent 
 
 ## Description of data and data source
 
-Three data sets have been identified for this project. The primary data set ("Injury Player Data" obtained from a Github repository contain 1,586 obervations) consists of every play ran in the NFL containing an injury during the 2019-2020 season. Some of the things contained in this data include the teams playing, the week in the season, play description, injury area, and injured player metrics. Two other data sets were obtained from Kaggle. The first is a "cumulative play data" containing information about every play ran in the 2019-2020 NFL season (42,186 observations). Information such as the teams playing, play description, and time in the game when it was ran. The last data set is the "player demographic data" containing information about all NFL players in the 2015-2019 seasons (11,145 observations). This data set has player metrics such as height, weight, date of birth, etc.
+Three data sets have been identified for this project. The primary data set ("Injury Player Data" obtained from a Github repository contain 1,586 observations) consists of every play ran in the NFL containing an injury during the 2019-2020 season. Some of the things contained in this data include the teams playing, the week in the season, play description, injury area, and injured player metrics. Two other data sets were obtained from Kaggle. The first is a "cumulative play data" containing information about every play ran in the 2019-2020 NFL season (42,186 observations). Information such as the teams playing, play description, and time in the game when it was ran. The last data set is the "player demographic data" containing information about all NFL players in the 2015-2019 seasons (11,145 observations). This data set has player metrics such as height, weight, date of birth, etc.
 
 
 ## Questions/Hypotheses to be addressed
-_State the research questions you plan to answer with this analysis._
+
 My hope is to answer the following question: What metrics, if any, are available that can help predict whether an injury may occur? In turn, this has the potential to answer more questions. For example: 1. For coaches, are there specific play types that lead to more injuries? 2. For players, is there a goal weight for certain positions that can reduce the likelihood of injury?
 
 To cite other work (important everywhere, but likely happens first in introduction), make sure your references are in the bibtex file specified in the YAML header above and have the right bibtex key. Then you can include like this:
