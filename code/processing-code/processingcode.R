@@ -205,11 +205,27 @@ for (i in seq_along(pl1$height)) {
     pl1$height[i] = as.numeric(pl1$height[i])
   }
 }
-
+pl1$height = as.numeric(pl1$height) #Convert to numeric 
 
 ## ---- cleanplayersdata2 --------
-#Character parameters may also need to be converted to factor. 
-pl1$position <- as.factor(pl1$position)  
+#Create new field summarizing player positions to match the injury data set positions 
+pl1$position = as.character(pl1$position) #Had to convert to character b/c R wont add a new factor
+pl1$position = replace(pl1$position, pl1$position == 'SS', 'DB')
+pl1$position = replace(pl1$position, pl1$position == 'CB', 'DB')
+pl1$position = replace(pl1$position, pl1$position == 'FS', 'DB')
+pl1$position = replace(pl1$position, pl1$position == 'DE', 'DL')
+pl1$position = replace(pl1$position, pl1$position == 'DT', 'DL')
+pl1$position = replace(pl1$position, pl1$position == 'NT', 'DL')
+pl1$position = replace(pl1$position, pl1$position == 'OLB', 'LB')
+pl1$position = replace(pl1$position, pl1$position == 'ILB', 'LB')
+pl1$position = replace(pl1$position, pl1$position == 'MLB', 'LB')
+pl1$position = replace(pl1$position, pl1$position == 'HB', 'OL')
+pl1$position = replace(pl1$position, pl1$position == 'FB', 'OL')
+pl1$position = replace(pl1$position, pl1$position == 'P', 'SPEC')
+pl1$position = replace(pl1$position, pl1$position == 'S', 'SPEC')
+pl1$position = replace(pl1$position, pl1$position == 'K', 'SPEC')
+pl1$position = replace(pl1$position, pl1$position == 'LS', 'SPEC')
+pl1$position = as.factor(pl1$position) #convert back to factor 
 
 ## ---- cleanplayersdata3 --------
 #Create new field calculating age from birthdate (yyyy-mm-dd)
@@ -218,7 +234,7 @@ pl1$age = NA
 pl1$age = round(as.numeric(difftime(as.Date("2019-09-05"), pl1$birthDate, units = 'weeks'))/52, digits=1)
 
 
-## ---- savedata --------
+## ---- savedatas.character.srcref()## ---- savedata --------
 # all done, data is clean now. 
 # Let's assign at the end to some final variable
 # makes it easier to add steps above
