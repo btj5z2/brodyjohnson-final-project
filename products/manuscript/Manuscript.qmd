@@ -12,11 +12,6 @@ bibliography: ../../assets/dataanalysis-references.bib
 csl: ../../assets/apa.csl
 ---
 
-The structure below is one possible setup for a data analysis project (including the course project). For a manuscript, adjust as needed. 
-You don't need to have exactly these sections, but the content covering those sections should be addressed.
-
-This uses MS Word as output format. [See here](https://quarto.org/docs/output-formats/ms-word.html) for more information. You can switch to other formats, like html or pdf. See [the Quarto documentation](https://quarto.org/) for other formats.
-
 
 ```{r, echo=FALSE, message=FALSE}
 # load a few R packages
@@ -24,6 +19,7 @@ library(here)
 library(knitr)
 library(dplyr)
 library(tidyverse)
+library(ggplot2)
 ```
 
 
@@ -39,20 +35,17 @@ The goal of this project will be to find variables related to injuries observed 
 
 ## General Background Information
 
-For years, the NFL has been making changes in the game in an attempt to prevent player injuries. These changes range from rule modifications to investment in advancements to the players pads and helmets. Hopefully, the findings from this project can help inform players, coaches, and who knows, the NFL about the metrics for a higher risk in injury.
+Over the past three decades, the NFL has come under increased scrutiny over the dangers of American football (@frontline-nfl-concussion). What initially began as concerns over the persistent brutality central to the sport, shifted into the more insidious issue of concussions and their role in the post-mortem diagnosis of Chronic Traumatic Encephalitic (CTE) (@mayoclinic-cte). The NFL has been making changes in the game in an attempt to prevent player injuries from rule modifications to investment in advancements to the players pads and helmets. Hopefully, the findings from this project can help inform players, coaches, and who knows, the NFL about the metrics for a higher risk in injury.
 
 ## Description of data and data source
 
-Three data sets have been identified for this project. The primary data set ("Injury Player Data" obtained from a Github repository contains 1,586 observations) consists of every play ran in the NFL containing an injury during the 2019-2020 season. Some of the things contained in this data include the teams playing, the week in the season, play description, injury area, and injured player metrics. Two other data sets were obtained from Kaggle. The first is a "cumulative play data" containing information about every play ran in the 2019-2020 NFL season (42,186 observations). Information such as the teams playing, play description, and time in the game when it was ran. The last data set is the "player demographic data" containing information about all NFL players in the 2016-2019 seasons (11,145 observations). This data set has player metrics such as height, weight, date of birth, etc.
+Three data sets have been identified for this project. The primary data set ("Injury Player Data" contains 1,586 observations) consists of every play ran in the NFL containing an injury during the 2019-2020 season. Some of the things contained in this data include the teams playing, the week in the season, play description, injury area, and injured player metrics. The next is a "cumulative play data" containing information about every play ran in the 2019-2020 NFL season (42,186 observations). Information such as the teams playing, play description, and time in the game when it was ran. The last data set is the "player demographic data" containing information about all NFL players in the 2016-2019 seasons (11,145 observations). This data set has player metrics such as height, weight, date of birth, etc.
 
 
 ## Questions/Hypotheses to be addressed
 
 My hope is to answer the following question: What metrics, if any, are available that can help predict whether an injury may occur? In turn, this has the potential to answer more questions. For example: 1. For coaches, are there specific play types that lead to more injuries? 2. For players, is there a goal weight for certain positions that can reduce the likelihood of injury?
 
-*****To cite other work (important everywhere, but likely happens first in introduction), make sure your references are in the bibtex file specified in the YAML header above and have the right bibtex key. Then you can include like this:
-
-Examples of reproducible research projects can for instance be found in [@mckay2020; @mckay2020a].******
 
 
 
@@ -61,33 +54,29 @@ Examples of reproducible research projects can for instance be found in [@mckay2
 
 # Methods 
 
-The primary idea behind the analysis for this project is to look at various parameters when an injury occurred and compare them to the rest of the NFL. If the parameters are related to the play itself, the paramter in the injruy data set will be compared to cumulative play data set. Likewise, if the paramter is related to the injured player themselves, this paramter will be copmared to the cumulative player data set. If there is a statistical difference between paramters, we can likely draw some conclusion about a parameter causing injuries. 
+The primary idea behind the analysis for this project is to look at various parameters when an injury occurred and compare them to the rest of the NFL. If the parameters are related to the play itself, the parameter in the injury data set will be compared to cumulative play data set. Likewise, if the parameter is related to the injured player themselves, this parameter will be compared to the cumulative player data set. If there is a statistical difference between parameters, we can likely draw some conclusion about a parameter causing injuries. 
 
 With this being said, it is imperative to ensure parameters from both data sets are in the same format in order to compare them. Other data cleaning items will include vetting the data sets for unexpected/missing values and converting variables to another variable that easier to use. For example, the play descriptions in the injury data set and cumulative play data set are very extensive in what happened during the play. Therefore, this will be boiled down to be either a run play, short pass, etc.  
 
 
-## Schematic of workflow
-
-Sometimes you might want to show a schematic diagram/figure that was not created with code (if you can do it with code, do it). @fig-schematic is an example of some - completely random/unrelated - schematic that was generated with Biorender.
-We store those figures in the `assets` folder.
-
-```{r}
-#| label: fig-schematic
-#| fig-cap: "A figure that is manually generated and shows some overview/schematic. This has nothing to do with the data, it's just a random one from one of our projects I found and placed here."
-#| echo: FALSE
-knitr::include_graphics(here("assets","antigen-recognition.png"))
-```
-
-
-
 ## Data aquisition
-_As applicable, explain where and how you got the data. If you directly import the data from an online source, you can combine this section with the next._
+The "Injury Player Data" set was found from a Github repository. The repository belongs to a group of students who wanted to do a similar analysis looking at NFL injuries and various factors that could affect them. 
+
+https://github.com/sammieerne/NFL-Injury-Analysis/tree/main/Data
+
+The "cumulative play data" set comes from a website called NFLsavant.com. This website is dedicated to providing NFL statistics to the public. 
+
+https://nflsavant.com/about.php
+
+Lastly, the "player demographic data" set was also taken from a Github repository. Similar to the other repository, this one belongs to a group who wanted to analyze injuries in the NFL. 
+
+https://github.com/ericcrouse/NFL-Injury-Exploration/tree/main/data/raw
 
 
 ## Data import and cleaning
 In both the "Injury Player Data" set and "cumulative play data" set, the play descriptions will need to be boiled down to simplified play types (pass, run, fumble, etc.). Next for the "Injury Player Data" set, the "injury_area" parameter will be summarized as upper and lower body injuries. This is due to the overwhelming number of injuries being classified as one or the other already so this will classify the remaining injuries as such. For the injury data set and the "player demographic data", player ages will need to be calculated from their birth-dates.  
 
-As for the "cumulative player data" set, empty columns will be removed and 0's in the down column will be converted to "NA" values which indicate kickoffs & PATs. Lastly, a lot of unnecessary plays are included in the "cumulative play data" set such as end of quarter/games, 2-minute warnings, and timeouts so these observations can be filtered out. 
+As for the "cumulative play data" set, empty columns will be removed and 0's in the down column will be converted to "NA" values which indicate kickoffs & PATs. Lastly, a lot of unnecessary plays are included in the "cumulative play data" set such as end of quarter/games, 2-minute warnings, and timeouts so these observations can be filtered out. 
 
 In the "player demographic data" set, observations for players height were recorded in both inches and feet-inches so this was cleaned to only contain data in inches. Lastly, the players position was converted to a factor for analysis.
 
@@ -107,7 +96,7 @@ players=readRDS("../../data/processed-data/playersprocesseddata.rds")
 
 
 ## Statistical analysis
-First, I will select variables that show a potential difference between the injury data set and cumulative  data sets through exploratory analysis. From these variables, I will run  inferential tests for the numeric variables and a Chi-square test for the categorical variables. 
+First, I will select variables that show a potential difference between the injury data set and cumulative data sets through exploratory analysis. From these variables, I will run inferential tests for the numeric variables and a Chi-square test for the categorical variables. 
 
 {{< pagebreak >}}
 
@@ -178,23 +167,29 @@ ggplot(data = team_freq, aes(x = reorder(team, -count), y = count))+
 The number of plays seem evenly distributed among the halves (slight increase in 2nd and 4th quarters likely due to running last minute plays). However, the number of injuries consistently increase throughout the game which also makes sense as players fatigue.  
 
 ```{r}
-hist(injuries$qtr,main="Injuries by Quarter", ylim=c(0,550), xlim=c(1,5),xlab="Quarter",labels =T)
-
+ggplot(injuries, aes(x = qtr)) +
+  geom_histogram(binwidth = 1, fill = "lightgray", color = "black", alpha = 1) +
+  labs(title = "Injuries by Quarter", x = "Quarter", y = "Frequency")
 ```
 ```{r}
-hist(pbp$Quarter, breaks=6,main="Total Plays by Quarter", ylim=c(0,11200), xlab="Quarter",labels =T)
-
+ggplot(pbp, aes(x = Quarter)) +
+  geom_histogram(binwidth = 1, fill = "lightgray", color = "black", alpha = 1) +
+  labs(title = "Total Plays by Quarter", x = "Quarter", y = "Frequency")
 ```
 
 
 There appears to be a very similar trend among the number of plays per down and the number of injuries ocurring during each down. That is, they both decrease at similar rates.  
 
 ```{r}
-hist(injuries$down, breaks=5,main="Injuries by Down", ylim=c(0,700),xlim=c(1,4),xlab="Down",labels =T)
+ggplot(injuries, aes(x = down)) +
+  geom_histogram(binwidth = 1, fill = "lightgray", color = "black", alpha = 1) +
+  labs(title = "Injuries by Down", x = "Down", y = "Frequency")
 ```
 
 ```{r}
-hist(pbp$Down, breaks=6,main="Total Plays by Down", ylim=c(0,14900),xlim=c(1,4), xlab="Down",labels =T)
+ggplot(pbp, aes(x = Down)) +
+  geom_histogram(binwidth = 1, fill = "lightgray", color = "black", alpha = 1) +
+  labs(title = "Total Plays by Down", x = "Down", y = "Frequency")
 ```
 
 
@@ -224,32 +219,42 @@ ggplot(data = play_type_freq2, aes(x = reorder(play_type, -count), y = count))+
 Below are the distributions of players height first of the injured players and then from the cumulative player data set. Both histograms appear to be normally distributed. One interesting difference is the injured players appear to have more players just below and above the center of the histogram. That is, it would almost suggest players specifically under and above the mean height have a higher inclination for injury. 
 
 ```{r}
-hist(injuries$height, breaks=10,main="Injuries by Height", ylim=c(0,250), xlab="Height",labels =T)
-
+ggplot(injuries, aes(x = height)) +
+  geom_histogram(binwidth = 1, fill = "lightgray", color = "black", alpha = 1) +
+  labs(title = "Injuries by Height", x = "Height", y = "Frequency")
 ```
 ```{r}
-hist(players$height, breaks=10,main="Total Players Height", ylim=c(0,250), xlab="Height",labels =T)
-
+ggplot(players, aes(x = height)) +
+  geom_histogram(binwidth = 1, fill = "lightgray", color = "black", alpha = 1) +
+  labs(title = "Total Players by Height", x = "Height", y = "Frequency")
 ```
 
 Below are the histograms depicting the players height. They are both skewed to the right with one interesting finding of a peak of injured players in the ~300lb range. 
 
 ```{r}
-hist(injuries$weight, breaks=10,main="Injuries by Weight", xlim=c(150,400),ylim=c(0,400), xlab="Weight",labels =T)
+ggplot(injuries, aes(x = weight)) +
+  geom_histogram(binwidth = 10, fill = "lightgray", color = "black", alpha = 1) +
+  labs(title = "Injuries by Weight", x = "Weight", y = "Frequency")
 ```
 
 ```{r}
-hist(players$weight, breaks=10,main="Total Players Weight", xlim=c(150,400),ylim=c(0,400),  xlab="Weight",labels =T) 
+ggplot(players, aes(x = weight)) +
+  geom_histogram(binwidth = 10, fill = "lightgray", color = "black", alpha = 1) +
+  labs(title = "Total Players by Weight", x = "Weight", y = "Frequency")
 ```
 
 Both distributions of players age are below and have a similar skewness to the right. 
 
 ```{r}
-hist(injuries$age, breaks=10,main="Injuries by Age", xlim=c(20,45),ylim=c(0,425), xlab="Age",labels =T)
+ggplot(injuries, aes(x = age)) +
+  geom_histogram(binwidth = 1, fill = "lightgray", color = "black", alpha = 1) +
+  labs(title = "Injuries by Age", x = "Age", y = "Frequency")
 ```
 
 ```{r}
-hist(players$age, breaks=10,main="Total Players Age", xlim=c(20,45),ylim=c(0,425),  xlab="Age",labels =T) 
+ggplot(players, aes(x = age)) +
+  geom_histogram(binwidth = 1, fill = "lightgray", color = "black", alpha = 1) +
+  labs(title = "Total Players by Age", x = "Age", y = "Frequency")
 ```
 
 The primary finding from the player positions is that it appears the linemen (defensive and ofensive) are injured more often relative to how many there are in the league.  
@@ -342,13 +347,6 @@ _Discuss what you perceive as strengths and limitations of your analysis._
 ## Conclusions
 _What are the main take-home messages?_
 
-_Include citations in your Rmd file using bibtex, the list of references will automatically be placed at the end_
-
-This paper [@leek2015] discusses types of analyses. 
-
-These papers [@mckay2020; @mckay2020a] are good examples of papers published using a fully reproducible setup similar to the one shown in this template. 
-
-Note that this cited reference will show up at the end of the document, the reference formatting is determined by the CSL file specified in the YAML header. Many more style files for almost any journal [are available](https://www.zotero.org/styles). You also specify the location of your bibtex reference file in the YAML. You can call your reference file anything you like.
 
 
 {{< pagebreak >}}
