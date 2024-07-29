@@ -54,6 +54,7 @@ dplyr::glimpse(injuries)
   #Summarize "description" into "play_type"
   #Summarize "injury_area" as upper vs lower body into new parameter
   #Create new field calculating age from birthdate (mm/dd/yyyy)
+  #Create new paramter to tell whether injured player is on home or away team 
 dplyr::glimpse(pbp) 
   #Convert "gamedate" to date (from char), 
   #remove empty columns (X, X.1,X.2,X.3), 
@@ -145,14 +146,25 @@ for (i in 1:nrow(d1)) {
 ## ---- cleaninjuriesdata3 --------
 #Create new field calculating age from birthdate (mm/dd/yyyy).
 is.na(d1$birth_date) = NA #Some NA values were not recognized by R as NA or anything else 
-d1$birth_date <- as.Date(d1$birth_date, format = "%m/%d/%Y", tryFormats = c("%m/%d/%Y")) 
-d1$game_date <- d1$game_date+as.Date("1899-12-30", "%Y-%m-%d") #Convert game_date from integer of # days after 12/30/1899 to date
+d1$birth_date = as.Date(d1$birth_date, format = "%m/%d/%Y", tryFormats = c("%m/%d/%Y")) 
+d1$game_date = d1$game_date+as.Date("1899-12-30", "%Y-%m-%d") #Convert game_date from integer of # days after 12/30/1899 to date
 d1$age = NA
 d1$age = round(as.numeric(difftime(d1$game_date, d1$birth_date, units = 'weeks'))/52, digits=1)
 
 ## ---- cleaninjuriessdata4 --------
 #Character parameters may also need to be converted to factor. 
-d1$position <- as.factor(d1$position)
+d1$position = as.factor(d1$position)
+
+## ---- cleaninjuriessdata5 --------
+#New variable to tell whether injured player is on home team or not 
+d1$InjPlayerHomeOrAway = NA
+for (i in 1:nrow(d1)) {
+  if(is.na(d1$team[i]) || is.na(d1$home_team[i]) || is.na(d1$away_team[i])) {d1$InjPlayerHomeOrAway[i] = NA}
+  else if(d1$team[i] == d1$home_team[i]) {d1$InjPlayerHomeOrAway[i] = 'Home'}
+  else if(d1$team[i] == d1$away_team[i]) {d1$InjPlayerHomeOrAway[i] = 'Away'}
+  else {d1$InjPlayerHomeOrAway[i] = NA}
+} 
+
 
 ## ---- cleanpbpdata1 --------
 #Convert "gamedate" to date (from char), 

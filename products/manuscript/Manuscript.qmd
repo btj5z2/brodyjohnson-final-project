@@ -26,7 +26,7 @@ library(ggplot2)
 
 # Summary/Abstract
 
-The goal of this project will be to find variables related to injuries observed in the NFL. That is, find the common play types, game situation (time remaining, down, yards to go, etc.), and injured player metrics (position, height, body weight, etc.) that has a correlation to causing the resulting injury.
+The goal of this project will be to conduct a descriptive analysis on variables related to injuries observed in the NFL. That is, find the common play types, game situation (time remaining, down, yards to go, etc.), and injured player metrics (position, height, body weight, etc.) that has a correlation to causing the resulting injury.
 
 {{< pagebreak >}}
 
@@ -54,12 +54,13 @@ My hope is to answer the following question: What metrics, if any, are available
 
 # Methods 
 
-The primary idea behind the analysis for this project is to look at various parameters when an injury occurred and compare them to the rest of the NFL. If the parameters are related to the play itself, the parameter in the injury data set will be compared to cumulative play data set. Likewise, if the parameter is related to the injured player themselves, this parameter will be compared to the cumulative player data set. If there is a statistical difference between parameters, we can likely draw some conclusion about a parameter causing injuries. 
+The primary idea behind the analysis for this project is to look at various parameters when an injury occurred and compare them to the rest of the NFL. If the parameters are related to the play itself, the parameter in the "injury player data" set will be compared to "cumulative play data" set. Likewise, if the parameter is related to the injured player themselves, this parameter will be compared to the "cumulative player data" set. 
 
-With this being said, it is imperative to ensure parameters from both data sets are in the same format in order to compare them. Other data cleaning items will include vetting the data sets for unexpected/missing values and converting variables to another variable that easier to use. For example, the play descriptions in the injury data set and cumulative play data set are very extensive in what happened during the play. Therefore, this will be boiled down to be either a run play, short pass, etc.  
+With this being said, it is imperative to ensure parameters from both data sets are in the same format in order to compare them. Other data cleaning items will include vetting the data sets for unexpected/missing values and converting variables to another variable that is easier to use. For example, the play descriptions in the "injury player data" set and "cumulative play data" set are very extensive in what happened during the play. Therefore, this will be boiled down to be either a run play, short pass, etc.  
 
 
 ## Data aquisition
+
 The "Injury Player Data" set was found from a Github repository. The repository belongs to a group of students who wanted to do a similar analysis looking at NFL injuries and various factors that could affect them. 
 
 https://github.com/sammieerne/NFL-Injury-Analysis/tree/main/Data
@@ -68,13 +69,14 @@ The "cumulative play data" set comes from a website called NFLsavant.com. This w
 
 https://nflsavant.com/about.php
 
-Lastly, the "player demographic data" set was also taken from a Github repository. Similar to the other repository, this one belongs to a group who wanted to analyze injuries in the NFL. 
+Lastly, the "player demographic data" set was also taken from a Github repository. Similar to the other repository, this one belongs to a different group who wanted to analyze injuries in the NFL. 
 
 https://github.com/ericcrouse/NFL-Injury-Exploration/tree/main/data/raw
 
 
 ## Data import and cleaning
-In both the "Injury Player Data" set and "cumulative play data" set, the play descriptions will need to be boiled down to simplified play types (pass, run, fumble, etc.). Next for the "Injury Player Data" set, the "injury_area" parameter will be summarized as upper and lower body injuries. This is due to the overwhelming number of injuries being classified as one or the other already so this will classify the remaining injuries as such. For the injury data set and the "player demographic data", player ages will need to be calculated from their birth-dates.  
+
+In both the "Injury Player Data" set and "cumulative play data" set, the play descriptions will need to be simplified to play types (pass, run, fumble, etc.). Next for the "Injury Player Data" set, the "injury_area" parameter will be summarized as upper and lower body injuries. This is due to the overwhelming number of injuries being classified as one or the other already so this will classify the remaining injuries as such. For the "injury player data" set and the "player demographic data", player ages will need to be calculated from their birth-dates. Lastly, a new variable was created to tell whether the injured player was on the home or away team. 
 
 As for the "cumulative play data" set, empty columns will be removed and 0's in the down column will be converted to "NA" values which indicate kickoffs & PATs. Lastly, a lot of unnecessary plays are included in the "cumulative play data" set such as end of quarter/games, 2-minute warnings, and timeouts so these observations can be filtered out. 
 
@@ -96,7 +98,7 @@ players=readRDS("../../data/processed-data/playersprocesseddata.rds")
 
 
 ## Statistical analysis
-First, I will select variables that show a potential difference between the injury data set and cumulative data sets through exploratory analysis. From these variables, I will run inferential tests for the numeric variables and a Chi-square test for the categorical variables. 
+I will depict specific variables that can potentially show a relationship to number of injuries. As applicable, the same variables will be depicted from the supporting data sets for comparison. 
 
 {{< pagebreak >}}
 
@@ -106,6 +108,8 @@ First, I will select variables that show a potential difference between the inju
 ## Exploratory/Descriptive analysis
 
 ### Structures of each data set
+
+Below are glimpses into each of the three data sets showing the variables, variable types, and the first several observations as an exmaple of what the data looks like. 
 
 ```{r}
 #Structure of Injury Data Set
@@ -123,11 +127,12 @@ glimpse(players)
 ```
 
 
-### Exploratory Analysis of parameters only in the *Injury* Data Set
+### Parameters only in the *Injury* Data Set
 
-Looking at the number of injuries each week in the regular season, there's a sharp drop after the first week, steadily climbs nearing the end of the season, and another drop at the end of the season. Intuitively, this makes sense in that players may not be physically readily for the intensity of a regular-season game despite training camps and preseason games. After that, the slight rise in the second half of the season could be due to exhaustion through a long season and/or teams fighting more for playoff spots. Lastly, the steep drop in the last week is likely due to teams knowing whether or not they have made playoffs and therefore, do not want to incur an injury to go into either the post-season or off-season.  
+Looking at the number of injuries each week in the regular season (17 weeks), there's a sharp drop after the first week, steadily climbs nearing the end of the season, and another drop at the end of the season. Intuitively, this makes sense in that players may not be physically ready for the intensity of the first regular-season game despite training camps and preseason games. After that, the slight rise in the second half of the season could be due to exhaustion through a long season and/or teams fighting more for playoff spots. Lastly, the steep drop in the last week is likely due to teams knowing whether or not they have made playoffs and therefore, do not want to incur an injury to go into either the post-season or off-season.  
+
 ```{r}
-hist(injuries$week.x, breaks=21,main="Injuries by Week in Regular Season", xlim=c(1,17),ylim=c(0,200),xlab="Week",labels =T)
+hist(injuries$week.x, breaks=25,main="Injuries by Week in Regular Season", xlim=c(1,22),ylim=c(0,200),xlab="Week",labels =T)
 ```
 
 Below depicts the number of injuries for each reported injury area. The top results were simply reported as upper or lower body.
@@ -151,7 +156,7 @@ ggplot(data = injareanew_freq, aes(x = reorder(injury.area.new, -count), y = cou
   theme(axis.text.x = element_text(angle=45, hjust = 1))
 ```
 
-Out of curiosity, I plotted below the frequency of injuries for each team during the regular season. I was not expecting much but it is interesting to see about a triple in number of injuries from the lowest team (LA Rams) and the highest (LA Chargers). 
+Out of curiosity, I plotted below the frequency of injuries for each team during the regular season. I was not expecting much but it is interesting to see about a triple in number of injuries from the lowest team (LA Rams) and the highest (LA Chargers). Although this graph filters out the post-season games, the four teams that made division championship games are relatively spread out across this graph and consist of the Chiefs (KC), Titans (TEN), 49ers (SF), and Packers (GB). Point being the most competitive teams are relatively unaffected by number of injuries. 
 
 ```{r}
 team_freq=injuries %>%  filter(week.x<18) %>% group_by(team) %>% summarize(count=n()) #filtered to only contain regular season games (weeks 1-17)
@@ -161,8 +166,27 @@ ggplot(data = team_freq, aes(x = reorder(team, -count), y = count))+
   theme(axis.text.x = element_text(angle=45, hjust = 1))
 ```
 
+Below depicts the number of injuries for the players that belonged to the home or away team. 
 
-### Exploratory Analysis of parameters in the *Injury* Data Set and *Play-by-play* Data Set
+```{r}
+HA_freq=injuries %>% group_by(InjPlayerHomeOrAway) %>% summarize(count=n()) #filtered to only contain regular season games (weeks 1-17)
+ggplot(data = HA_freq, aes(x = reorder(InjPlayerHomeOrAway, -count), y = count))+
+  geom_col() +
+  labs(x = "Team", y="# of Injuries") + 
+  theme(axis.text.x = element_text(angle=45, hjust = 1))
+```
+
+At initial glance, the bar plot above makes it appear the number of injuries are roughly equal between the home and away teams. Below, I created a table to see the number of observations along with their respective proportions. Sure enough, there does not appear to be a large difference in the number of injuries on a team whether they are playing at home or away. 
+
+```{r}
+counts = table(injuries$InjPlayerHomeOrAway) #Counts of each factor 
+proportions = prop.table(counts) #Proportions of each factor
+result = cbind(Counts = counts, Percentage = round(proportions*100,1)) #Combine results
+print(result)
+```
+
+
+### Parameters in the *Injury* Data Set and *Play-by-play* Data Set
 
 The number of plays seem evenly distributed among the halves (slight increase in 2nd and 4th quarters likely due to running last minute plays). However, the number of injuries consistently increase throughout the game which also makes sense as players fatigue.  
 
@@ -178,7 +202,7 @@ ggplot(pbp, aes(x = Quarter)) +
 ```
 
 
-There appears to be a very similar trend among the number of plays per down and the number of injuries ocurring during each down. That is, they both decrease at similar rates.  
+There appears to be a very similar trend among the number of plays per down and the number of injuries occurring during each down. That is, they both decrease at similar rates.  
 
 ```{r}
 ggplot(injuries, aes(x = down)) +
@@ -193,7 +217,7 @@ ggplot(pbp, aes(x = Down)) +
 ```
 
 
-Below are two histograms depicting first the number of injuries and then second the total # of plays by different play types. After a glance, there does not appear to be a significant difference in number of injuries and total # of plays ran by play type. 
+Below are two histograms depicting first the number of injuries and then second the total number of plays by different play types. After a glance, there does not appear to be a significant difference in number of injuries and total number of plays ran by play type. 
 
 ```{r}
 play_type_freq=injuries %>%  group_by(play_type) %>% summarize(count=n()) 
@@ -214,9 +238,55 @@ ggplot(data = play_type_freq2, aes(x = reorder(play_type, -count), y = count))+
 
 ```
 
-### Exploratory Analysis of parameters in the *Injury* Data Set and *Cumulative Player* Data Set
+Above, we can tell the order of play types are the same between injuries and total number of plays (e.g. there are more run plays causing injuries and in total relative to deep passes). Next, I wanted to compare the proportions of these play types. Below is a table of percentages of injuries and total plays by play type. From this, we can tell the percentages are relatively close to one another. It appears run plays have injuries about 4.5% less often compared to how often they're ran. Similarly, pass plays have injuries occur 2.5-4% more often compared to how often they are ran. 
 
-Below are the distributions of players height first of the injured players and then from the cumulative player data set. Both histograms appear to be normally distributed. One interesting difference is the injured players appear to have more players just below and above the center of the histogram. That is, it would almost suggest players specifically under and above the mean height have a higher inclination for injury. 
+```{r}
+#Injury Data set
+inj_counts = table(injuries$play_type) #Counts of each play type
+inj_proportions = prop.table(inj_counts) #Proportions of each play type 
+
+#PBP data set
+total_play_counts = table(pbp$play_type) #Counts of each play type
+total_play_counts = total_play_counts[-5]
+total_play_proportions = prop.table(total_play_counts) #Proportions of each play type 
+
+#Combining results
+result = data.frame(round(inj_proportions*100,1), round(total_play_proportions*100,1))
+result = result[,-3] 
+colnames(result) = c("Play Type", "Injuries Percentages", "Total Plays Percentages") #Renaming columns
+result=result[order(result$`Injuries Percentages`, decreasing = TRUE),]
+print(result)
+```
+
+Now that the play types are known, I am interested if there is a difference in plays ran between the teams with the lowest and highest number of injuries (Rams and Chargers, respectively). For one team having triple the number of injuries, the percentage of play types are closer than I would have expected. The biggest difference is between the number of deep passes. According to the table above, deep passes are one of the more dangerous play types relative to how often they are ran. Still with only a ~3% difference in deep pass plays between the two teams, there must be more factors contributing to the Chargers having so many more injuries.  
+
+```{r}
+#Rams 
+ram_df = pbp[pbp$OffenseTeam == 'LA',] #Filter data set
+rams_inj_counts = table(ram_df$play_type) #Counts of each play type 
+rams_inj_proportions = prop.table(rams_inj_counts) #Proportions of each play type 
+rams_inj_proportions = rams_inj_proportions[-5]
+
+#Chargers
+cha_df = pbp[pbp$OffenseTeam == 'LAC',] #Filter data set
+cha_inj_counts = table(cha_df$play_type) #Counts of each play type 
+cha_inj_proportions = prop.table(cha_inj_counts) #Proportions of each play type 
+
+#Combining results
+result = data.frame(round(rams_inj_proportions*100,1), round(cha_inj_proportions*100,1))
+print(result)
+result = result[,-3] 
+colnames(result) = c("Play Type", "Rams Percentages", "Chargers Percentages") #Renaming columns
+result=result[order(result$`Rams Percentages`, decreasing = TRUE),]
+print(result)
+```
+
+
+
+
+### Parameters in the *Injury* Data Set and *Cumulative Player* Data Set
+
+Below are the distributions of players height first of the injured players and then from the cumulative player data set. Both histograms appear to be normally distributed. One interesting difference is the injured players appear to have more players just above the center of the histogram. That is, it would  suggest players just above the mean height (specifically with a height of 76-77 inches) have a higher inclination for injury. 
 
 ```{r}
 ggplot(injuries, aes(x = height)) +
@@ -229,7 +299,7 @@ ggplot(players, aes(x = height)) +
   labs(title = "Total Players by Height", x = "Height", y = "Frequency")
 ```
 
-Below are the histograms depicting the players height. They are both skewed to the right with one interesting finding of a peak of injured players in the ~300lb range. 
+Below are the histograms depicting the players height. They are both skewed to the right with one interesting finding of a peak of injured players in the ~310lb range. 
 
 ```{r}
 ggplot(injuries, aes(x = weight)) +
@@ -243,7 +313,7 @@ ggplot(players, aes(x = weight)) +
   labs(title = "Total Players by Weight", x = "Weight", y = "Frequency")
 ```
 
-Both distributions of players age are below and have a similar skewness to the right. 
+Both distributions of players age are below and have a similar distribution.  
 
 ```{r}
 ggplot(injuries, aes(x = age)) +
@@ -257,7 +327,7 @@ ggplot(players, aes(x = age)) +
   labs(title = "Total Players by Age", x = "Age", y = "Frequency")
 ```
 
-The primary finding from the player positions is that it appears the linemen (defensive and ofensive) are injured more often relative to how many there are in the league.  
+The primary finding from the player positions is that it appears the linemen (defensive and offensive) are injured more often relative to how many there are in the league.  
 
 ```{r}
 position_freq=injuries %>%  group_by(position) %>% summarize(count=n()) 
@@ -277,60 +347,25 @@ ggplot(data = position_freq2, aes(x = reorder(position, -count), y = count))+
 
 ```
 
-
-## Basic statistical analysis
-
-From the exploratory analysis, it appears there three numeric variables that may show a difference and one categorical. The three numeric variables are quarter, height, and weight while the single categorical variable is player position. 
+To make findings about the positions more clear, a table of percentages for each position can be found below for injured players and all of players. From the graphs, we could easily tell the defensive linemen and offensive linemen have higher percentages of being injured relative to their proportions in the league. The table below suggests linebackers, wide receivers, and running backs are injured 4-7% less relative to their respective proportions in the league. 
 
 ```{r}
-#Inferential test looking at Quarter
-shapiro.test(injuries$qtr) #p-value<0.05. Reject Ho & don't assume normal.
-shapiro.test(sample(pbp$Quarter, size=5000, replace=F)) #p-value<0.05. Reject Ho & don't assume normal.
-#Will do Wilcoxon rank-sum test b/c of non-normal data 
+#Injury Data set
+inj_counts = table(injuries$position) #Counts of each position
+inj_proportions = prop.table(inj_counts) #Proportions of each position
 
-wilcox.test(injuries$qtr, pbp$Quarter, exact=F) #p-value<0.05. Reject Ho and therefore, one group tends to have larger values than the other 
+#Players Data set
+total_play_counts = table(players$position) #Counts of each position
+total_play_proportions = prop.table(total_play_counts) #Proportions of each position
 
+#Combine results
+result = data.frame(round(inj_proportions*100,1), round(total_play_proportions*100,1))
+result = result[,-3] 
+colnames(result) = c("Player Position", "Injuries Percentages", "Total Percentages") #Renaming columns
+result=result[order(result$`Injuries Percentages`, decreasing = TRUE),]
+print(result)
 ```
 
-```{r}
-#Inferential test looking at Height
-shapiro.test(injuries$height) #p-value<0.05. Reject Ho & don't assume normal.
-shapiro.test(players$height) #p-value<0.05. Reject Ho & don't assume normal.
-#Will do Wilcoxon rank-sum test b/c of non-normal data 
-
-wilcox.test(injuries$height, players$height, exact=F) #p-value<0.05. Reject Ho and therefore, one group tends to have larger values than the other 
-
-```
-
-```{r}
-#Inferential test looking at Weight
-shapiro.test(injuries$weight) #p-value<0.05. Reject Ho & don't assume normal.
-shapiro.test(players$weight) #p-value<0.05. Reject Ho & don't assume normal.
-#Will do Wilcoxon rank-sum test b/c of non-normal data 
-
-wilcox.test(injuries$weight, players$weight, exact=F) #p-value<0.05. Reject Ho and therefore, one group tends to have larger values than the other 
-
-```
-```{r}
-#Chi-square test looking at player position
-factor_levels = levels(injuries$position)
-chisq.test(sample(injuries$position, size=1303, replace=F), players$position) #p-value>0.05. Accept Ho and therefore, the two data sets have equal proportions among the player positions 
-
-```
-
-## Full analysis
-
-_Use one or several suitable statistical/machine learning methods to analyze your data and to produce meaningful figures, tables, etc. This might again be code that is best placed in one or several separate R scripts that need to be well documented. You want the code to produce figures and data ready for display as tables, and save those. Then you load them here._
-
-Example @tbl-resulttable2 shows a summary of a linear model fit.
-
-```{r}
-#| label: tbl-resulttable2
-#| tbl-cap: "Linear model fit table."
-#| echo: FALSE
-resulttable2 = readRDS(here("results","tables","resulttable2.rds"))
-knitr::kable(resulttable2)
-```
 
 
 {{< pagebreak >}}
@@ -339,13 +374,29 @@ knitr::kable(resulttable2)
 # Discussion
 
 ## Summary and Interpretation
-_Summarize what you did, what you found and what it means._
+
+The purpose of this analysis was to find the variables within these data sets that have a correlation to causing injuries. First, what kind of injuries? Although we have limited information on the specifics, it should be noted lower body injuries occur more often than upper body and head injuries. 
+
+The parameters that appeared to have an effect on injuries would consist of the week in the season, quarter, play type, and player position. The finding from each parameter is summarized below. It is worth mentioning players height and weight also had an effect but would be highly correlated to the player position.   
+1. Week during season - A spike of injuries at the beginning of the season followed by a steady increase throughout the rest of the season. Likely due to being unprepared for a regular season game and then more injuries throughout the season as fatigue sets in. 
+2. Quarter of a game - Injuries steadily increases throughout the course of a game likely due to fatigue. 
+3. Play type - There is a 2-5% difference in number of injuries compared to the total number ran. Runs have slight lower chance of injury while pass plays have a slight higher chance. 
+4. Player Position - By and large, linemen (offensive and defensive) have a greater chance of injury. 
+
+A notable mention would be number of injuries per team during the regular season. One can expect a difference due to coaching staff, team culture, ambient conditions of home field but the LA Chargers having three times the number of injuries as the LA Rams was unexpected.   
+ 
 
 ## Strengths and Limitations
-_Discuss what you perceive as strengths and limitations of your analysis._
+
+Strengths of this analysis are that it was thorough as a descriptive analysis. As applicable, parameters from the injury data set were compared to the population of the NFL to see if there were any meaningful differences. 
+
+With this being said, this analysis consisted of comparing plots and percentages. The next step of this would be to conduct inferential analysis to solidify the findings in this initial analysis. Furthermore, this analysis would be interesting to conduct on multiple years worth of data. This analysis was of a single NFL season and therefore, it would be interesting to see a trend in this data across different seasons.  
 
 ## Conclusions
-_What are the main take-home messages?_
+
+First, the increased number of injuries being in the lower body is a reminder to coaches and players to stay hydrated and stretch before games to avoid pulled muscles. Although the data does not call out pulled muscles being a major contributor, this is a good reminder to limit injuries if you can. 
+
+As for coaches, be aware of the variables discussed in this analysis that have a higher chance of injuries. Injuries occur more often during the first week of the season so perhaps adjustments can be made in the preseason to better prepare the players. The coaches with a higher proportion of injuries should consider collaborating with the coaches of lower numbers to see if there is something different they can do to prevent these for the players. Preseason rituals are likely proprietary but I would think it would be in the interest of the NFL to investigate this and come up with a best practices for the teams. 
 
 
 
